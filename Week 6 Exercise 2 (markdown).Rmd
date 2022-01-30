@@ -1,0 +1,102 @@
+---
+title: "Assignment 4"
+author: "Kaylar Fullington"
+date: "2022-01-23"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+bibliography: "C:/Users/runek/dsc520/assignments/assignment04/bibliography.bib"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Markdown Basics
+
+## Favorite Foods
+1. Chocolate
+2. Watermelon
+3. Kale
+
+## Images
+
+
+## Add a Quote
+
+"A room without books is like a body without a soul." - Marcus Tullius Cicero
+
+## Add an Equation
+```{r simple-math-ex}
+1 + 1
+```
+## Add a Footnote
+This is a footnote[^1] in Markdown.
+
+[^1]: Test footnote
+
+## Add Citations
+
+* R for Everyone [@lander2014r]
+* Discovering Statistics Using R [@field2012discovering]
+
+# Inline Code
+
+```{r include = FALSE}
+heights_df <- read.csv("C:/Users/runek/dsc520/data/r4ds/heights.csv")
+covid_df <- read.csv("C:/Users/runek/dsc520/data/nytimes/covid-19-data/us-states.csv")
+covid_df$date <- as.Date(covid_df$date)
+date_df <- data.frame(date = covid_df$date, year = as.numeric(format(covid_df$date, format = "%Y")), month = as.numeric(format(covid_df$date, format = "%m")),
+day = as.numeric(format(covid_df$date, format = "%d")))
+california_df <- covid_df[ which( covid_df$state == "California"), ]
+ny_df <- covid_df[which(covid_df$state == "New York"), ]
+florida_df <- covid_df[which(covid_df$state == "Florida"), ]
+```
+## NY Times COVID-19 Data
+```{r echo = FALSE}
+library(ggplot2)
+library(scales)
+ggplot(data = florida_df, aes(x = date, group=1, color = "darkred")) +
+    geom_line(aes(y = cases, color = "Florida")) +
+    geom_line(data = ny_df, aes(y = cases, color = "New York")) +
+    geom_line(data = california_df, aes(y = cases, color = "California")) +
+    scale_colour_manual("",
+                        breaks = c("New York", "California", "Florida"),
+                        values = c("New York" = "darkgreen", "California" ="steelblue", "Flordia" = "darkred")) +
+    xlab(" ") + ylab("Cases") + scale_y_log10()
+```
+
+## R4DS Height vs Earnings
+```{r echo = FALSE}
+ggplot(heights_df, aes(x = height, y = earn)) + geom_point()
+```
+
+# Tables
+
+## Knitr Table with Kable
+```{r echo = FALSE}
+name <- c("Aragon", "Bilbo", "Frodo", "Galadriel", "Sam", "Gandalf", "Legolas", "Sauron", "Gollum")
+race <- c("Men", "Hobbit", "Hobbit", "Elf", "Hobbit", "Maia", "Elf", "Maia", "Hobbit")
+in_fellowship <- c(TRUE, FALSE, TRUE, FALSE, TRUE, TRUE, TRUE, FALSE, FALSE)
+ring_bearer <- c(FALSE, TRUE, TRUE, FALSE, TRUE, TRUE, FALSE, TRUE, TRUE)
+age <- c(88, 129, 51, 7000, 36, 2019, 2931, 7052, 589)
+
+characters_df <- data.frame(name, race, in_fellowship, ring_bearer, age)
+knitr::kable(head(characters_df), caption = 'One Ring to Rule Them All')
+```
+
+## Pandoc Table
+```{r echo = FALSE}
+name <- c("Aragon", "Bilbo", "Frodo", "Galadriel", "Sam", "Gandalf", "Legolas", "Sauron", "Gollum")
+race <- c("Men", "Hobbit", "Hobbit", "Elf", "Hobbit", "Maia", "Elf", "Maia", "Hobbit")
+in_fellowship <- c(TRUE, FALSE, TRUE, FALSE, TRUE, TRUE, TRUE, FALSE, FALSE)
+ring_bearer <- c(FALSE, TRUE, TRUE, FALSE, TRUE, TRUE, FALSE, TRUE, TRUE)
+age <- c(88, 129, 51, 7000, 36, 2019, 2931, 7052, 589)
+
+characters_df <- data.frame(name, race, in_fellowship, ring_bearer, age)
+library(pander)
+pandoc.table(characters_df)
+```
+# References
+
