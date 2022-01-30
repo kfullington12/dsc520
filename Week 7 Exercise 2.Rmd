@@ -1,0 +1,109 @@
+---
+title: "Week 7 Exercise 2"
+author: "Kaylar Fullington"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Create the Data Frame from Survey Data
+```{r data frame}
+readingvstv <- read.csv(file = 'data/student-survey.csv')
+```
+
+# Find the Covariance
+## Use R to calculate the covariance of the survey variables and provide an explanation of why you would use this calculation and what the results indicate.
+
+The variables collected in the survey include: _Time Reading_, _Time Watching TV_, _Happiness_, and _Gender_. Calculating the covariance between each variable and one other variable will give us an idea of whether a linear relationship between the two is positive or negative.
+
+```{r Covariance Reading and TV}
+cov(readingvstv)
+```
+I used the cov() function to calculate the covariance between each variable and each other variable. The resulting table shows numbers that indicate whether there is a positive or negative linear relationship between each pair of variables. For instance, the covariance for _TimeReading_ and _TimeTV_ is negative - meaning that as one variable increases, the other decreases (and vice versa).
+
+## Pros and Cons of Covariance and the cov() function
+
+**Pros**
+This is a good first step in evaluating a set of data, it gives the user an idea of what kind of relationships each pair of variables might have, positive or negative.
+
+**Cons**
+Unfortunately, the covariance calculation does not account for different measurement scales. We cannot confidently examine how strongly two variables correlate if the measurement methods are not consistent. There is a way to fix this, however, and it is with correlation coefficients.
+
+# Find the Correlation Coefficient
+
+The covariance needs to be standardized to remove the impact of measurement methods. The cor() function will calculate the correlation coefficient of each variable with each other variable. It automatically chooses to give the _Pearson Coefficient_. This coefficient is calculated by dividing the covariance of two variables by the standard deviations of each variable. See below.
+
+## Perform a correlation analysis of all variables.
+
+```{r Correlation Coefficient All}
+cor(readingvstv, use = "everything")
+```
+
+The resulting chart shows how each pair correlates._Use = "everything"_ causes the program to use all data entires, placing an "NA" for rows with missing data. Each score can be multiplied by 100 to get a percentage for how strongly the variables correlate. Each variable correlates 100% with itself. We can also see that _TimeReading_ and _TimeTV_ have a very strong negative correlation that comes out to around 88%. As another example, we can see that _TimeTV_ and _Happiness_ have a relatively strong positive correlation at around 64%.
+
+## Perform a correlation analysis of just one pair of variables.
+
+```{r Correlation between Reading and Happiness}
+cor.test(readingvstv$TimeReading, readingvstv$Happiness, use = "everything")
+```
+
+The _cor.test()_ function was chosen because it gives more extended statistics than the _cor()_ function does.The correlation between _TimeReading_ and _Happiness_ (under the word "cor") is negative and around 43%. This implies that as more time is spent reading, the happiness score goes down and vice versa. Additionally, it shows the confidence interval, which is a range of _z-scores_ (a z-score is the measure of how far a sample entry is from the population mean) assuming a normal distribution.(The majority of population samples of above 30 entries will have a normal distribution).
+Z-scores fall into a range of -3 (on the left side of a normal distribution) to 3 (on the right side of the distribution). A 95% confidence interval means that we expect 95% of the z-scores will fall between -1.96 and 1.96, with a range of 3.92. In this case, the upper bound is 0.2232458 and the lower bound is -0.8206596.
+
+Let's see what happens when we increase that score to 99%.
+
+## Repeat your correlation test in step 2 but set the confidence interval at 99%.
+
+```{r Corr b/w Reading and Happiness w/ 99% confidence interval}
+cor.test(readingvstv$TimeReading, readingvstv$Happiness, use = "everything", conf.level = 0.99)
+```
+A 99% confidence interval means that 99% of z-scores will be in the range between -2.58 and 2.58, which is a larger range than 95%. It's a little less precise. In this case, the confidence interval changed. Now, the upper bound is 0.4176242 and the lower bound is -0.8801821. This is a larger range than that was returned at a confidence interval of 95%. What does this mean? The probability that a score will fall within the confidence interval has gone up. In turn, this means it's more likely to contain the true mean. Interestingly, both confidence intervals are equally accurate in finding the range in which the true mean exists.The main difference between the two is that IF the true mean falls within the 95% confidence interval, it is more likely that you will _find_ the true mean since there are fewer observations in that interval. However, it is more likely that the true mean will be in the confidence interval of 99% because there are more observations.
+
+## The other calculations in the corr.test() function.
+
+The corr.test() function also produces, in no particular order, the _t-statistic_(t), the _degrees of freedom_ (df), the _p-value_(p-value), and the _correlation coefficient_(cor). Lets define the _t-statistic_ and the _p-value_.
+
+### The t-statistic
+
+This statistic is calculated by dividing the difference between the estimated mean and they hypothesized mean by the standard error of the estimated mean. If the hypothesized mean is correct, we must assume that the t-statistic will fall around the middle of the t distribution. This would be about 2 standard deviations from the mean.
+
+In the case of our _readingvstv_ data frame, we can conclude that the hypothesized mean COULD be correct, since the t-statistic is within 2 standard deviations.
+
+
+### The p-value
+This statistic represents the probability, if the null hypothesis is correct, that it would return a similar or more extreme estimated mean. If it too extreme, we will conclude that we must reject the null hypothesis. If the p-value is 0.05 or lower, we can conclude that the result is significant. If not, the result is not significant.
+
+In the case of our _readingvstv_ data frame, our p-value of 0.1813 is above that 0.05 value, so we can conclude that this p-value is not significant.
+*******
+
+## The Coefficient of Determination
+
+This coefficient is calculated by performing r^2, or r squared, with r being the correlation coefficient. 
+
+```{r Coefficient of Determination, TimeTV on TimeReading}
+model <- lm(readingvstv$TimeTV~readingvstv$TimeReading, data = readingvstv)
+summary(model)
+```
+This model shows the Multiple R-Squared (Correlation of Determination) of 0.7798. In order to get the level that variation in time reading was caused by time watching TV, we multiply by 100. Thus, according to the Coefficient of Determination, about 78% of the variation in reading time can be explained by the number of hours spent watching TV.
+
+Based on my own intuition and the statistics I've run today, I can say that there _may_ be an impact by time watching TV on time reading. Having spent time as a student, however, I would say time spent reading would be impacted heavily by what type of reading was done. Someone who loves light fiction novels would likely spend a greater proporation of their time reading. However, if dry textbooks are the only reading these students do, I'm not surprised that they would spend more time watching TV. More research into the type of reading would be needed before I can make any strong determinations.
+
+
+## Partial Correlation
+
+```{r Partial Corr of TimeTV to TimeReading, Controlling for Happiness}
+
+readingvstv2 <- readingvstv[c("TimeTV", "TimeReading", "Happiness")]
+library(ggm)
+pc <- pcor(c("TimeTV", "TimeReading", "Happiness"), var(readingvstv2))
+pc^2
+
+```
+First, a second data frame, _readingvstv2_ was created with only three variables, excluding sex. Here, the output of the function pcor(), assigned to the variable "pc", shows the partial correlation for _TimeTv_ and _TimeReading_, controlling for _Happiness_.
+
+```{r pcor.test}
+pcor.test(pc, 1, 11)
+```
+The pcor.test() function shows the p-value as less than 0.05, which indicates that the result is significant. Earlier when we were calculating the correlation coefficients for each pair of variables, we saw that the value for _TimeTV_ vs _TimeReading_ was -0.88306768. The pcor() function shows that value as -0.872945 which is pretty similar. Controlling for _Happiness_ ultimately had a very small effect on the correlation coefficient for this pair of variables.
+
